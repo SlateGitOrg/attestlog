@@ -212,7 +212,11 @@ func (p *Policy) Evaluate(in Input) *Report {
 		}
 		if p.RequireSourceDigest {
 			err := src.Digest.Validate()
-			r.add("source-digest", len(src.Digest) > 0 && err == nil, "source digest %s", src.Digest.String())
+			desc := src.Digest.String()
+			if desc == "" {
+				desc = "(none: source named only by a mutable ref)"
+			}
+			r.add("source-digest", len(src.Digest) > 0 && err == nil, "source digest %s", desc)
 		}
 	}
 
