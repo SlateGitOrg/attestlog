@@ -62,17 +62,38 @@ func (m *MemoryStore) Close() error { return nil }
 //
 //	[4-byte big-endian length][body][4-byte CRC-32C of body]
 //
-// Each Append is followed by fsync. On open, a torn final record (a crash
-// between write and fsync, so never acknowledged or signed) is truncated
-// away; a complete record with a bad checksum is a hard error.
+// Each Append is followed by fsync. If the write or the fsync fails, Append
+// truncates the file back to where the record started and fsyncs again, so
+// a failed append never leaves bytes that a later append would follow. If
+// that rollback also fails, the store latches into a failed state and
+// refuses every later Append with ErrStoreFailed. On open, a torn final
+// record (a crash between write and fsync, so never acknowledged or signed)
+// is truncated away; a complete record with a bad checksum is a hard error.
 type FileStore struct {
 	mu     sync.Mutex
-	f      *os.File
+	f      storeFile
 	logger *slog.Logger
+	failed error // sticky: set when a failed append could not be rolled back
+}
+
+// storeFile is the subset of *os.File the store uses. It exists so tests
+// can inject I/O faults.
+type storeFile interface {
+	io.ReadWriteSeeker
+	Sync() error
+	Truncate(size int64) error
+	Stat() (os.FileInfo, error)
+	Close() error
 }
 
 // ErrCorruptStore reports a damaged record that is not a torn tail.
 var ErrCorruptStore = errors.New("tlog: corrupt entry store")
+
+// ErrStoreFailed reports that an earlier append failed and its partial
+// bytes could not be removed. The store refuses further appends, because
+// appending after leftover bytes would corrupt or fork the log on replay.
+// The process must be restarted; replay then truncates a torn tail.
+var ErrStoreFailed = errors.New("tlog: entry store failed")
 
 var castagnoli = crc32.MakeTable(crc32.Castagnoli)
 
@@ -104,16 +125,43 @@ func (s *FileStore) Append(body []byte) error {
 	rec = binary.BigEndian.AppendUint32(rec, crc32.Checksum(body, castagnoli))
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if _, err := s.f.Seek(0, io.SeekEnd); err != nil {
+	if s.failed != nil {
+		return fmt.Errorf("%w: %w", ErrStoreFailed, s.failed)
+	}
+	off, err := s.f.Seek(0, io.SeekEnd)
+	if err != nil {
 		return fmt.Errorf("tlog: seek: %w", err)
 	}
-	if _, err := s.f.Write(rec); err != nil {
-		return fmt.Errorf("tlog: write record: %w", err)
+	n, err := s.f.Write(rec)
+	if err == nil && n != len(rec) {
+		err = io.ErrShortWrite
+	}
+	if err != nil {
+		return s.rollbackLocked(off, fmt.Errorf("tlog: write record: %w", err))
 	}
 	if err := s.f.Sync(); err != nil {
-		return fmt.Errorf("tlog: fsync: %w", err)
+		return s.rollbackLocked(off, fmt.Errorf("tlog: fsync: %w", err))
 	}
 	return nil
+}
+
+// rollbackLocked removes whatever a failed Append left after off (a torn
+// record, or a complete record whose fsync failed) and makes the removal
+// durable. The caller never acknowledged the record, so nothing signed
+// refers to it. If the rollback fails, the store is marked failed so no
+// later record can be written after the leftover bytes.
+func (s *FileStore) rollbackLocked(off int64, cause error) error {
+	err := s.f.Truncate(off)
+	if err == nil {
+		err = s.f.Sync()
+	}
+	if err != nil {
+		s.failed = errors.Join(cause, fmt.Errorf("tlog: roll back failed append at offset %d: %w", off, err))
+		s.logger.Error("entry store failed; refusing further appends", "offset", off, "err", s.failed)
+		return fmt.Errorf("%w: %w", ErrStoreFailed, s.failed)
+	}
+	s.logger.Warn("append failed; rolled back to last durable record", "offset", off, "err", cause)
+	return cause
 }
 
 // Load implements Store. It truncates a torn tail record.

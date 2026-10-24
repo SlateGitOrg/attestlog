@@ -337,3 +337,135 @@ func BenchmarkAdd(b *testing.B) {
 		})
 	}
 }
+
+// A failed append must not leave bytes that later appends follow: the
+// review reproduced a torn write followed by an accepted Add that made the
+// store unopenable, and an fsync failure that replayed an extra leaf.
+func TestFileStoreFailedAppendRollsBack(t *testing.T) {
+	signer := testutil.LogSigner(t)
+	s := testutil.Signer(t, keys.Ed25519)
+	cases := []struct {
+		name   string
+		inject func(*tlog.FileFaults)
+	}{
+		{"torn write (ENOSPC after 6 bytes)", func(f *tlog.FileFaults) { f.WriteFail, f.WritePartial = true, 6 }},
+		{"full write then failed write call", func(f *tlog.FileFaults) { f.WriteFail, f.WritePartial = true, 1<<30 }},
+		{"complete write, fsync fails", func(f *tlog.FileFaults) { f.SyncFailures = 1 }},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			path := filepath.Join(dir, "entries.log")
+			ff := &tlog.FileFaults{}
+			st, err := tlog.OpenFaultyFileStore(dir, nil, ff)
+			if err != nil {
+				t.Fatal(err)
+			}
+			l, err := tlog.New(st, signer, tlog.Options{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			testutil.Populate(t, l, s, "before", 1)
+			info, _ := os.Stat(path)
+			durable := info.Size()
+
+			ff.Set(tc.inject)
+			if _, err := l.Add(testutil.EntryBody(t, "failed", s)); err == nil {
+				t.Fatal("append with injected fault succeeded")
+			} else if errors.Is(err, tlog.ErrStoreFailed) {
+				t.Fatalf("successful rollback reported as store failure: %v", err)
+			}
+			if info, _ := os.Stat(path); info.Size() != durable {
+				t.Fatalf("leftover bytes after rollback: size %d, want %d", info.Size(), durable)
+			}
+			ff.Reset()
+
+			// The store keeps working, and the next entry lands right after
+			// the last durable record.
+			res, err := l.Add(testutil.EntryBody(t, "after", s))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if res.Index != 1 || l.Size() != 2 {
+				t.Fatalf("index %d size %d after recovery", res.Index, l.Size())
+			}
+			signed := l.Head()
+			_ = l.Close()
+
+			st2, err := tlog.OpenFileStore(dir, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			l2, err := tlog.New(st2, signer, tlog.Options{})
+			if err != nil {
+				t.Fatalf("reopen after rolled-back append: %v", err)
+			}
+			defer func() { _ = l2.Close() }()
+			if l2.Size() != signed.Size || l2.Head().Root != signed.Root {
+				t.Fatalf("replay forked: size %d root %s, signed size %d root %s",
+					l2.Size(), l2.Head().Root, signed.Size, signed.Root)
+			}
+			if got := l2.Search(testutil.Digest("failed")); len(got) != 0 {
+				t.Fatalf("failed entry replayed at %v", got)
+			}
+		})
+	}
+}
+
+// If the rollback itself fails, the store must refuse every later append
+// instead of writing after the leftover bytes.
+func TestFileStoreLatchesWhenRollbackFails(t *testing.T) {
+	signer := testutil.LogSigner(t)
+	s := testutil.Signer(t, keys.Ed25519)
+	cases := []struct {
+		name   string
+		inject func(*tlog.FileFaults)
+	}{
+		{"truncate fails", func(f *tlog.FileFaults) { f.WriteFail, f.WritePartial, f.TruncateFail = true, 6, true }},
+		{"fsync after truncate fails", func(f *tlog.FileFaults) { f.WriteFail, f.WritePartial, f.SyncFailures = true, 6, 1 }},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			ff := &tlog.FileFaults{}
+			st, err := tlog.OpenFaultyFileStore(dir, nil, ff)
+			if err != nil {
+				t.Fatal(err)
+			}
+			l, err := tlog.New(st, signer, tlog.Options{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			testutil.Populate(t, l, s, "before", 1)
+			root := l.Head().Root
+
+			ff.Set(tc.inject)
+			if _, err := l.Add(testutil.EntryBody(t, "failed", s)); !errors.Is(err, tlog.ErrStoreFailed) {
+				t.Fatalf("want ErrStoreFailed, got %v", err)
+			}
+			ff.Reset()
+			if _, err := l.Add(testutil.EntryBody(t, "after", s)); !errors.Is(err, tlog.ErrStoreFailed) {
+				t.Fatalf("append after unrecoverable failure: %v", err)
+			}
+			if l.Size() != 1 || l.Head().Root != root {
+				t.Fatalf("in-memory log moved: size %d", l.Size())
+			}
+			_ = l.Close()
+
+			// Restart: replay truncates the torn tail and the log matches
+			// what was signed.
+			st2, err := tlog.OpenFileStore(dir, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			l2, err := tlog.New(st2, signer, tlog.Options{})
+			if err != nil {
+				t.Fatalf("reopen: %v", err)
+			}
+			defer func() { _ = l2.Close() }()
+			if l2.Size() != 1 || l2.Head().Root != root {
+				t.Fatalf("replay after restart: size %d", l2.Size())
+			}
+		})
+	}
+}
