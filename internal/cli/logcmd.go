@@ -90,7 +90,7 @@ func cmdLogServe(e *env, args []string) error {
 	}
 	defer func() { _ = l.Close() }()
 
-	ln, err := net.Listen("tcp", *addr)
+	ln, err := (&net.ListenConfig{}).Listen(e.ctx, "tcp", *addr)
 	if err != nil {
 		return fmt.Errorf("listen: %w", err)
 	}

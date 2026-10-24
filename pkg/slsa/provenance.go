@@ -175,7 +175,7 @@ func repoOf(uri string) string {
 	return uri
 }
 
-// Builder options used by New.
+// Options configures New.
 type Options struct {
 	BuilderID    string
 	BuildType    string

@@ -1,0 +1,40 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - errorlint
+    - gocritic
+    - gosec
+    - misspell
+    - noctx
+    - nolintlint
+    - revive
+    - unconvert
+    - unparam
+    - usestdlibvars
+  settings:
+    gosec:
+      excludes:
+        - G304 # reading user-supplied file paths is the CLI's job
+    revive:
+      rules:
+        - name: exported
+        - name: package-comments
+        - name: var-naming
+        - name: error-strings
+        - name: error-return
+        - name: receiver-naming
+        - name: indent-error-flow
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters: [gosec, errorlint, unparam, noctx]
+
+formatters:
+  enable:
+    - gofmt

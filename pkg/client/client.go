@@ -63,7 +63,7 @@ func New(baseURL string, logKey *note.Verifier, hc *http.Client) (*Client, error
 // LogKey returns the pinned checkpoint verifier.
 func (c *Client) LogKey() *note.Verifier { return c.logKey }
 
-func (c *Client) do(ctx context.Context, method, path string, q url.Values, body []byte) ([]byte, int, error) {
+func (c *Client) do(ctx context.Context, method, path string, q url.Values, body []byte) ([]byte, error) {
 	u := *c.base
 	u.Path += path
 	u.RawQuery = q.Encode()
@@ -73,35 +73,35 @@ func (c *Client) do(ctx context.Context, method, path string, q url.Values, body
 	}
 	req, err := http.NewRequestWithContext(ctx, method, u.String(), rd)
 	if err != nil {
-		return nil, 0, fmt.Errorf("client: build request: %w", err)
+		return nil, fmt.Errorf("client: build request: %w", err)
 	}
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
 	resp, err := c.hc.Do(req)
 	if err != nil {
-		return nil, 0, fmt.Errorf("client: %s %s: %w", method, path, err)
+		return nil, fmt.Errorf("client: %s %s: %w", method, path, err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 	data, err := io.ReadAll(io.LimitReader(resp.Body, maxResponse+1))
 	if err != nil {
-		return nil, resp.StatusCode, fmt.Errorf("client: read response: %w", err)
+		return nil, fmt.Errorf("client: read response: %w", err)
 	}
 	if len(data) > maxResponse {
-		return nil, resp.StatusCode, fmt.Errorf("client: response exceeds %d bytes", maxResponse)
+		return nil, fmt.Errorf("client: response exceeds %d bytes", maxResponse)
 	}
 	if resp.StatusCode/100 != 2 {
 		var e api.ErrorResponse
 		if json.Unmarshal(data, &e) == nil && e.Error != "" {
-			return nil, resp.StatusCode, fmt.Errorf("%w: %d: %s", ErrServer, resp.StatusCode, e.Error)
+			return nil, fmt.Errorf("%w: %d: %s", ErrServer, resp.StatusCode, e.Error)
 		}
-		return nil, resp.StatusCode, fmt.Errorf("%w: status %d", ErrServer, resp.StatusCode)
+		return nil, fmt.Errorf("%w: status %d", ErrServer, resp.StatusCode)
 	}
-	return data, resp.StatusCode, nil
+	return data, nil
 }
 
 func (c *Client) getJSON(ctx context.Context, path string, q url.Values, v any) error {
-	data, _, err := c.do(ctx, http.MethodGet, path, q, nil)
+	data, err := c.do(ctx, http.MethodGet, path, q, nil)
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func (c *Client) getJSON(ctx context.Context, path string, q url.Values, v any) 
 
 // Checkpoint fetches and verifies the latest signed checkpoint.
 func (c *Client) Checkpoint(ctx context.Context) (*checkpoint.Signed, error) {
-	data, _, err := c.do(ctx, http.MethodGet, api.PathCheckpoint, nil, nil)
+	data, err := c.do(ctx, http.MethodGet, api.PathCheckpoint, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (c *Client) Submit(ctx context.Context, env *dsse.Envelope, pubs ...*keys.P
 	if err != nil {
 		return nil, false, fmt.Errorf("client: encode request: %w", err)
 	}
-	data, _, err := c.do(ctx, http.MethodPost, api.PathEntries, nil, reqBody)
+	data, err := c.do(ctx, http.MethodPost, api.PathEntries, nil, reqBody)
 	if err != nil {
 		return nil, false, err
 	}

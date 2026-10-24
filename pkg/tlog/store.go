@@ -99,7 +99,7 @@ func (s *FileStore) Append(body []byte) error {
 		return fmt.Errorf("tlog: record size %d out of range", len(body))
 	}
 	rec := make([]byte, 0, 8+len(body))
-	rec = binary.BigEndian.AppendUint32(rec, uint32(len(body)))
+	rec = binary.BigEndian.AppendUint32(rec, uint32(len(body))) //nolint:gosec // len(body) <= MaxEntrySize, checked above
 	rec = append(rec, body...)
 	rec = binary.BigEndian.AppendUint32(rec, crc32.Checksum(body, castagnoli))
 	s.mu.Lock()
