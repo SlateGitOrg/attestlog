@@ -45,7 +45,7 @@ trusted.
 | A9 | Operator rewrites history and grows past a client | consistency proof from the trusted head | detected (inconsistent) | `TestForkDetectedOnUpdate` |
 | A10 | Operator signs a smaller tree later (rollback or truncation) | timestamps in checkpoints | detected with conclusive evidence | `TestRollbackAndStaleViews` |
 | A11 | Tampered bundle receipt (proof, size or index) | offline inclusion verification | prevented | `TestBundleParsing`, `TestTamperedArtifactAndReceipt` |
-| A12 | Crash or torn write in the log store | CRC-32C framing, fsync before signing | torn tail truncated; corruption is fatal | `TestFileStoreReplayAndTornTail` |
+| A12 | Crash, torn write, or a write/fsync I/O error (e.g. ENOSPC) the process keeps running after | CRC-32C framing, fsync before signing; a failed append is truncated back to the last durable record and fsynced, and if that rollback fails the store refuses all further appends (`ErrStoreFailed`) | torn tail truncated on replay; no record is ever written after leftover bytes; corruption is fatal | `TestFileStoreReplayAndTornTail`, `TestFileStoreFailedAppendRollsBack`, `TestFileStoreLatchesWhenRollbackFails` |
 | A13 | Resource-exhaustion submissions | 2 MiB request cap, 1 MiB entry cap, server timeouts, 4 MiB client read cap | mitigated (no rate limiting) | `TestRawHTTPValidation` |
 
 ## What attestlog does *not* defend against

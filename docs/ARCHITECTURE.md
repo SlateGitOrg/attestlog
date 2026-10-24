@@ -191,6 +191,17 @@ record      := u32be(len) ‖ body ‖ u32be(crc32c(body))
 ```
 
 `Append` writes the record and fsyncs before the log signs a new checkpoint.
+If the write fails, is short, or the fsync fails, `Append` truncates the file
+back to the offset where the record started and fsyncs that truncation, then
+returns the error; the log does not touch its in-memory tree, so nothing is
+acknowledged or signed. Without this, the next append would land after the
+leftover bytes: a torn leftover breaks the following record's CRC on replay,
+and a complete leftover replays as an extra leaf that disagrees with
+checkpoints already signed. If the rollback itself fails, the store latches
+and every later `Append` returns `ErrStoreFailed`; a restart replays the file
+and truncates the torn tail. Tests inject these faults through a wrapper over
+the store's file (`export_test.go`).
+
 `Load` replays records:
 
 - A short final record is a torn write that was never acknowledged, so it is
