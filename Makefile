@@ -44,7 +44,7 @@ fuzz:
 	$(GO) test -run=^$$ -fuzz=FuzzParse -fuzztime=20s ./pkg/checkpoint
 
 bench:
-	$(GO) test -run=^$$ -bench=. -benchmem -count=1 ./pkg/merkle ./pkg/keys
+	$(GO) test -run=^$$ -bench=. -benchmem -count=1 ./pkg/merkle ./pkg/keys ./pkg/tlog
 
 demo: build
 	./scripts/demo.sh

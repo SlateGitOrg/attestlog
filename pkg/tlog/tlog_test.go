@@ -298,3 +298,42 @@ func TestConcurrentAddsAndProofs(t *testing.T) {
 		t.Fatalf("size = %d", l.Size())
 	}
 }
+
+// BenchmarkAdd measures admission cost per entry: canonical parse, DSSE
+// signature verification, statement parsing, append and checkpoint signing.
+func BenchmarkAdd(b *testing.B) {
+	for _, store := range []string{"memory", "file+fsync"} {
+		b.Run(store, func(b *testing.B) {
+			s := testutil.Signer(b, keys.Ed25519)
+			var st tlog.Store = tlog.NewMemoryStore()
+			if store != "memory" {
+				fs, err := tlog.OpenFileStore(b.TempDir(), nil)
+				if err != nil {
+					b.Fatal(err)
+				}
+				st = fs
+			}
+			l, err := tlog.New(st, testutil.LogSigner(b), tlog.Options{})
+			if err != nil {
+				b.Fatal(err)
+			}
+			defer func() { _ = l.Close() }()
+			bodies := make([][]byte, 0, 4096)
+			for i := range cap(bodies) {
+				bodies = append(bodies, testutil.EntryBody(b, fmt.Sprintf("bench-%d", i), s))
+			}
+			i := 0
+			for b.Loop() {
+				if i == len(bodies) {
+					b.StopTimer()
+					bodies = append(bodies, testutil.EntryBody(b, fmt.Sprintf("bench-%d", i), s))
+					b.StartTimer()
+				}
+				if _, err := l.Add(bodies[i]); err != nil {
+					b.Fatal(err)
+				}
+				i++
+			}
+		})
+	}
+}
