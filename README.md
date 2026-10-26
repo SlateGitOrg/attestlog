@@ -192,7 +192,7 @@ checkpoints they were served and run `attestlog log compare`.
 
 ## How it works: design decisions
 
-The full list of rulings, each with its rationale and the cost if it is
+The full list of decisions, each with its rationale and the cost if it is
 wrong, is in [DECISIONS.md](DECISIONS.md). The most important ones:
 
 - **The server is untrusted.** The client rebuilds the canonical entry, hashes it, and verifies the receipt's inclusion proof *before* it writes a bundle. Every later proof is verified too. A tampering-middleware test suite exercises this.
@@ -273,7 +273,7 @@ pkg/               library packages (see the table above)
 examples/demo/     demo artifact and policy
 scripts/           demo.sh, coverage.sh
 docs/              ARCHITECTURE.md, THREAT_MODEL.md
-DECISIONS.md       design rulings with rationale
+DECISIONS.md       design decisions with rationale
 ```
 
 ## Limitations
