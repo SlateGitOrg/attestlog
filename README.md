@@ -221,7 +221,7 @@ make check   # gofmt -l, golangci-lint (0 issues), go build + vet, go test -race
 | Fuzzing | inclusion verification, DSSE parse+verify, note open, checkpoint parse (seeds run in `make test`) | `make fuzz` |
 
 **Coverage.** Statement coverage of `./pkg/...` across the whole suite was
-**95.2%** (`./scripts/coverage.sh`, gate 80%). The CLI package is 88.0%
+**95.3%** (`./scripts/coverage.sh`, gate 80%). The CLI package is 87.8%
 (`go test -cover ./internal/cli`).
 
 ### Benchmarks
