@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/archit2501/attestlog/pkg/dsse"
-	"github.com/archit2501/attestlog/pkg/intoto"
-	"github.com/archit2501/attestlog/pkg/keys"
-	"github.com/archit2501/attestlog/pkg/note"
-	"github.com/archit2501/attestlog/pkg/slsa"
-	"github.com/archit2501/attestlog/pkg/tlog"
+	"github.com/SlateGitOrg/attestlog/pkg/dsse"
+	"github.com/SlateGitOrg/attestlog/pkg/intoto"
+	"github.com/SlateGitOrg/attestlog/pkg/keys"
+	"github.com/SlateGitOrg/attestlog/pkg/note"
+	"github.com/SlateGitOrg/attestlog/pkg/slsa"
+	"github.com/SlateGitOrg/attestlog/pkg/tlog"
 )
 
 // Fixture defaults.

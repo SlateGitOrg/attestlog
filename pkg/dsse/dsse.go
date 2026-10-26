@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/archit2501/attestlog/pkg/keys"
+	"github.com/SlateGitOrg/attestlog/pkg/keys"
 )
 
 // MaxPayloadSize bounds decoded payloads to keep verification memory-safe.

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/archit2501/attestlog/pkg/keys"
+	"github.com/SlateGitOrg/attestlog/pkg/keys"
 )
 
 // The PAE example from the DSSE v1 protocol specification.

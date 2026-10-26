@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/archit2501/attestlog/pkg/merkle"
-	"github.com/archit2501/attestlog/pkg/note"
+	"github.com/SlateGitOrg/attestlog/pkg/merkle"
+	"github.com/SlateGitOrg/attestlog/pkg/note"
 )
 
 func signer(t *testing.T, name string) *note.Signer {

@@ -1,5 +1,7 @@
 # attestlog
 
+[![CI](https://github.com/SlateGitOrg/attestlog/actions/workflows/ci.yml/badge.svg)](https://github.com/SlateGitOrg/attestlog/actions/workflows/ci.yml)
+
 **SLSA provenance and in-toto attestations, with an offline transparency log that you do not have to trust.**
 
 attestlog is a single Go binary with no third-party dependencies. It does four things:
@@ -9,17 +11,21 @@ attestlog is a single Go binary with no third-party dependencies. It does four t
 - **Logs.** It appends envelopes to an append-only RFC 6962/9162 Merkle tree served over HTTP. Each append produces a signed checkpoint (a C2SP signed note).
 - **Audits.** Clients verify inclusion and consistency proofs themselves, and they detect equivocation, forks and rollbacks. Detection produces portable evidence that anyone with the log key can check offline.
 
-It is a lab and portfolio project. It implements the core mechanics behind
-Sigstore's Rekor and the Go checksum database small enough to read in an
-afternoon, and tests them against public reference vectors. It is **not** a
+It implements the core mechanics behind Sigstore's Rekor and the Go checksum
+database in a codebase small enough to read in an afternoon, and tests them
+against public reference vectors. It is **not** a
 production service (see [Limitations](#limitations) and the
 [comparison with Sigstore/Rekor](#how-this-compares-to-sigstore--rekor)).
 
-**Who it's for:**
+**Good for:**
 
 - Engineers learning how supply-chain attestations and transparency logs actually work.
 - Teams prototyping provenance policies offline.
 - Anyone who wants a readable reference for RFC 9162 proofs and C2SP checkpoints.
+
+## Why
+
+A signed build attestation only helps if you can check it against a policy, and a transparency log only helps if clients do not have to trust the operator. attestlog puts both halves in one small tool: attestations are verified deny-by-default, and every log response is verified by the client with Merkle proofs, so a log that rewrites history or shows different clients different views gets caught.
 
 ## Architecture
 
@@ -61,7 +67,7 @@ The full design, algorithms and complexity analysis are in
 | `pkg/bundle` | offline receipt (envelope, keys, inclusion proof, signed checkpoint) |
 | `internal/cli`, `cmd/attestlog` | the `attestlog` command |
 
-## Quickstart
+## Quick start
 
 Requirements: Go ≥ 1.24. `make check` also needs `golangci-lint` v2.
 
@@ -100,7 +106,7 @@ A policy looks like this ([examples/demo/policy.json](examples/demo/policy.json)
 {
   "version": 1,
   "allowedBuilderIds": ["https://ci.example.test/builders/release@*"],
-  "allowedBuildTypes": ["https://github.com/archit2501/attestlog/buildtypes/generic/v1"],
+  "allowedBuildTypes": ["https://github.com/SlateGitOrg/attestlog/buildtypes/generic/v1"],
   "allowedSourceRepos": ["git+https://git.example.test/acme/hello-cli"],
   "allowedSourceRefs": ["refs/tags/v1.0.0"],
   "requireSourceDigest": true,
@@ -109,7 +115,7 @@ A policy looks like this ([examples/demo/policy.json](examples/demo/policy.json)
 }
 ```
 
-## Demo
+## Example: the demo walkthrough
 
 `make demo` runs [scripts/demo.sh](scripts/demo.sh) entirely on `127.0.0.1`
 with bundled fixtures. The output below is from a real run, trimmed to the
@@ -125,7 +131,7 @@ verifying .demo/hello-cli_1.0.0_linux_amd64.txt
   [PASS] subject-digest       artifact matches subject "hello-cli_1.0.0_linux_amd64.txt"
   [PASS] predicate            SLSA Provenance v1
   [PASS] builder-id           builder "https://ci.example.test/builders/release@v2"
-  [PASS] build-type           buildType "https://github.com/archit2501/attestlog/buildtypes/generic/v1"
+  [PASS] build-type           buildType "https://github.com/SlateGitOrg/attestlog/buildtypes/generic/v1"
   [PASS] source-repo          source "git+https://git.example.test/acme/hello-cli"
   [PASS] source-ref           ref "refs/tags/v1.0.0"
   [PASS] source-digest        source digest gitCommit:3f2a9c1e5b7d4a6f8e0c2b4d6f8a0c2e4b6d8f0a
@@ -142,7 +148,7 @@ attestlog: verification FAILED
 == 7. Attack: a rogue builder attests and logs the same artifact
 ...
   [FAIL] builder-id           builder "https://laptop.example.test/manual-build"
-  [PASS] build-type           buildType "https://github.com/archit2501/attestlog/buildtypes/generic/v1"
+  [PASS] build-type           buildType "https://github.com/SlateGitOrg/attestlog/buildtypes/generic/v1"
   [FAIL] source-repo          source "git+https://git.example.test/mallory/hello-cli-fork"
   [FAIL] source-ref           ref "refs/heads/main"
   [FAIL] source-digest        source digest (none: source named only by a mutable ref)
@@ -184,7 +190,7 @@ evidence VERIFIED: equivocation by demo.log.example.test
 Step 11 shows the same split view caught by gossip: two clients save the
 checkpoints they were served and run `attestlog log compare`.
 
-## Design decisions
+## How it works: design decisions
 
 The full list of rulings, each with its rationale and the cost if it is
 wrong, is in [DECISIONS.md](DECISIONS.md). The most important ones:
@@ -197,7 +203,7 @@ wrong, is in [DECISIONS.md](DECISIONS.md). The most important ones:
 - **Formats people know.** DSSE, in-toto v1, SLSA v1, RFC 6962 hashing, and C2SP signed-note/tlog-checkpoint. Note signing matches the Go `sumdb/note` test vector byte for byte.
 - **Zero dependencies.** It uses only the Go standard library, so the supply-chain tool's own supply chain is empty.
 
-## Testing and evaluation
+## Testing
 
 ```sh
 make check   # gofmt -l, golangci-lint (0 issues), go build + vet, go test -race, coverage gate
@@ -244,25 +250,37 @@ attestlog is much smaller.
 
 | | attestlog | Sigstore (Rekor + Fulcio + cosign) |
 |---|---|---|
-| Purpose | readable lab implementation, offline | public-good production infrastructure |
+| Purpose | readable reference implementation, offline | public-good production infrastructure |
 | Signing identity | long-lived keys you distribute yourself | "keyless": short-lived Fulcio certificates bound to OIDC identities, plus long-lived keys |
 | Log backend | single process, in-memory tree, one append-only file | Rekor v1 is built on Trillian with a database backend. Newer Rekor versions move to a tile-based design (check current Sigstore docs) |
 | Entry types | DSSE envelopes carrying in-toto statements | many types (hashedrekord, DSSE, intoto, and others) |
 | Inclusion receipt | inclusion proof + signed checkpoint returned synchronously | inclusion proofs + checkpoints. Rekor v1 also issues a Signed Entry Timestamp (an inclusion *promise*) |
 | Checkpoint format | C2SP signed note | also signed-note style checkpoints |
 | Witnessing / gossip | local state, `log compare` between two files | ecosystem work on independent witnesses and monitors |
-| Scale and availability | lab scale. The whole tree stays in memory (about 64 MB per million entries). No replication, auth or rate limiting | operated, replicated, sharded over time |
+| Scale and availability | small scale. The whole tree stays in memory (about 64 MB per million entries). No replication, auth or rate limiting | operated, replicated, sharded over time |
 | Policy | built-in SLSA builder/source/digest policy | done by separate tools (for example slsa-verifier, policy-controller) |
 
 Use Sigstore for anything real. attestlog is useful for understanding and
 testing the mechanisms: every proof, signature and policy decision lives in a
 few hundred lines that you can step through.
 
+## Project layout
+
+```
+cmd/attestlog/     entry point
+internal/cli/      subcommands (keygen, attest, verify, log ...)
+pkg/               library packages (see the table above)
+examples/demo/     demo artifact and policy
+scripts/           demo.sh, coverage.sh
+docs/              ARCHITECTURE.md, THREAT_MODEL.md
+DECISIONS.md       design rulings with rationale
+```
+
 ## Limitations
 
 - **Not production software.** It has no authentication, rate limiting,
   replication or backups, and it has not had a security audit.
-- **Lab scale.** The tree and the entry bodies live in memory after replay.
+- **Small scale.** The tree and the entry bodies live in memory after replay.
   Memory grows linearly with the log.
 - **Durability costs throughput.** There is one fsync per entry and no group
   commit.
@@ -282,9 +300,6 @@ few hundred lines that you can step through.
   signing is checked against Go's vector. Envelopes and bundles from cosign
   or slsa-github-generator have not been tested, and the bundle format is
   attestlog's own, not the Sigstore bundle.
-- **The CI workflow has never run.** `.github/workflows/ci.yml` mirrors
-  `make check` plus `make demo`, but the repository has not been pushed
-  anywhere.
 
 ## Roadmap
 
@@ -299,5 +314,5 @@ few hundred lines that you can step through.
 
 ## License
 
-MIT. See [LICENSE](LICENSE). The test vectors in `pkg/merkle/testdata` are
+MIT — see [LICENSE](LICENSE). The test vectors in `pkg/merkle/testdata` are
 Apache-2.0; see [DATA.md](DATA.md).

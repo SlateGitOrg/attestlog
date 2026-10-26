@@ -18,8 +18,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/archit2501/attestlog/pkg/merkle"
-	"github.com/archit2501/attestlog/pkg/note"
+	"github.com/SlateGitOrg/attestlog/pkg/merkle"
+	"github.com/SlateGitOrg/attestlog/pkg/note"
 )
 
 // ErrMalformed is returned for unparsable checkpoint bodies.

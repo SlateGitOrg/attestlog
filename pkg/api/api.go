@@ -16,8 +16,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/archit2501/attestlog/pkg/dsse"
-	"github.com/archit2501/attestlog/pkg/merkle"
+	"github.com/SlateGitOrg/attestlog/pkg/dsse"
+	"github.com/SlateGitOrg/attestlog/pkg/merkle"
 )
 
 // Paths.

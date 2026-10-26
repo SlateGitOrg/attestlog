@@ -14,11 +14,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/archit2501/attestlog/pkg/api"
-	"github.com/archit2501/attestlog/pkg/intoto"
-	"github.com/archit2501/attestlog/pkg/keys"
-	"github.com/archit2501/attestlog/pkg/merkle"
-	"github.com/archit2501/attestlog/pkg/tlog"
+	"github.com/SlateGitOrg/attestlog/pkg/api"
+	"github.com/SlateGitOrg/attestlog/pkg/intoto"
+	"github.com/SlateGitOrg/attestlog/pkg/keys"
+	"github.com/SlateGitOrg/attestlog/pkg/merkle"
+	"github.com/SlateGitOrg/attestlog/pkg/tlog"
 )
 
 // Server is the HTTP front end of a log.

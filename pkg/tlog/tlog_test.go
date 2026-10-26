@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/archit2501/attestlog/internal/testutil"
-	"github.com/archit2501/attestlog/pkg/dsse"
-	"github.com/archit2501/attestlog/pkg/keys"
-	"github.com/archit2501/attestlog/pkg/merkle"
-	"github.com/archit2501/attestlog/pkg/tlog"
+	"github.com/SlateGitOrg/attestlog/internal/testutil"
+	"github.com/SlateGitOrg/attestlog/pkg/dsse"
+	"github.com/SlateGitOrg/attestlog/pkg/keys"
+	"github.com/SlateGitOrg/attestlog/pkg/merkle"
+	"github.com/SlateGitOrg/attestlog/pkg/tlog"
 )
 
 func newLog(t *testing.T, store tlog.Store) *tlog.Log {

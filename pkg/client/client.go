@@ -17,15 +17,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/archit2501/attestlog/pkg/api"
-	"github.com/archit2501/attestlog/pkg/bundle"
-	"github.com/archit2501/attestlog/pkg/checkpoint"
-	"github.com/archit2501/attestlog/pkg/dsse"
-	"github.com/archit2501/attestlog/pkg/intoto"
-	"github.com/archit2501/attestlog/pkg/keys"
-	"github.com/archit2501/attestlog/pkg/merkle"
-	"github.com/archit2501/attestlog/pkg/note"
-	"github.com/archit2501/attestlog/pkg/tlog"
+	"github.com/SlateGitOrg/attestlog/pkg/api"
+	"github.com/SlateGitOrg/attestlog/pkg/bundle"
+	"github.com/SlateGitOrg/attestlog/pkg/checkpoint"
+	"github.com/SlateGitOrg/attestlog/pkg/dsse"
+	"github.com/SlateGitOrg/attestlog/pkg/intoto"
+	"github.com/SlateGitOrg/attestlog/pkg/keys"
+	"github.com/SlateGitOrg/attestlog/pkg/merkle"
+	"github.com/SlateGitOrg/attestlog/pkg/note"
+	"github.com/SlateGitOrg/attestlog/pkg/tlog"
 )
 
 // maxResponse bounds every response body read from the server.

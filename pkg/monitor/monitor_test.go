@@ -9,15 +9,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/archit2501/attestlog/internal/testutil"
-	"github.com/archit2501/attestlog/pkg/checkpoint"
-	"github.com/archit2501/attestlog/pkg/client"
-	"github.com/archit2501/attestlog/pkg/keys"
-	"github.com/archit2501/attestlog/pkg/merkle"
-	"github.com/archit2501/attestlog/pkg/monitor"
-	"github.com/archit2501/attestlog/pkg/note"
-	"github.com/archit2501/attestlog/pkg/server"
-	"github.com/archit2501/attestlog/pkg/tlog"
+	"github.com/SlateGitOrg/attestlog/internal/testutil"
+	"github.com/SlateGitOrg/attestlog/pkg/checkpoint"
+	"github.com/SlateGitOrg/attestlog/pkg/client"
+	"github.com/SlateGitOrg/attestlog/pkg/keys"
+	"github.com/SlateGitOrg/attestlog/pkg/merkle"
+	"github.com/SlateGitOrg/attestlog/pkg/monitor"
+	"github.com/SlateGitOrg/attestlog/pkg/note"
+	"github.com/SlateGitOrg/attestlog/pkg/server"
+	"github.com/SlateGitOrg/attestlog/pkg/tlog"
 )
 
 // operator simulates one log operator key serving one or more views. A

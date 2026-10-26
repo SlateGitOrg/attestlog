@@ -11,14 +11,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/archit2501/attestlog/pkg/bundle"
-	"github.com/archit2501/attestlog/pkg/checkpoint"
-	"github.com/archit2501/attestlog/pkg/client"
-	"github.com/archit2501/attestlog/pkg/merkle"
-	"github.com/archit2501/attestlog/pkg/monitor"
-	"github.com/archit2501/attestlog/pkg/note"
-	"github.com/archit2501/attestlog/pkg/server"
-	"github.com/archit2501/attestlog/pkg/tlog"
+	"github.com/SlateGitOrg/attestlog/pkg/bundle"
+	"github.com/SlateGitOrg/attestlog/pkg/checkpoint"
+	"github.com/SlateGitOrg/attestlog/pkg/client"
+	"github.com/SlateGitOrg/attestlog/pkg/merkle"
+	"github.com/SlateGitOrg/attestlog/pkg/monitor"
+	"github.com/SlateGitOrg/attestlog/pkg/note"
+	"github.com/SlateGitOrg/attestlog/pkg/server"
+	"github.com/SlateGitOrg/attestlog/pkg/tlog"
 )
 
 func cmdLogKeygen(e *env, args []string) error {

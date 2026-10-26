@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/archit2501/attestlog/pkg/intoto"
+	"github.com/SlateGitOrg/attestlog/pkg/intoto"
 )
 
 var commit = strings.Repeat("c", 40)

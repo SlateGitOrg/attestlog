@@ -11,8 +11,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/archit2501/attestlog/pkg/keys"
-	"github.com/archit2501/attestlog/pkg/note"
+	"github.com/SlateGitOrg/attestlog/pkg/keys"
+	"github.com/SlateGitOrg/attestlog/pkg/note"
 )
 
 // Exit codes.

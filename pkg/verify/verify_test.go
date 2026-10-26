@@ -7,15 +7,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/archit2501/attestlog/internal/testutil"
-	"github.com/archit2501/attestlog/pkg/api"
-	"github.com/archit2501/attestlog/pkg/bundle"
-	"github.com/archit2501/attestlog/pkg/dsse"
-	"github.com/archit2501/attestlog/pkg/keys"
-	"github.com/archit2501/attestlog/pkg/note"
-	"github.com/archit2501/attestlog/pkg/policy"
-	"github.com/archit2501/attestlog/pkg/tlog"
-	"github.com/archit2501/attestlog/pkg/verify"
+	"github.com/SlateGitOrg/attestlog/internal/testutil"
+	"github.com/SlateGitOrg/attestlog/pkg/api"
+	"github.com/SlateGitOrg/attestlog/pkg/bundle"
+	"github.com/SlateGitOrg/attestlog/pkg/dsse"
+	"github.com/SlateGitOrg/attestlog/pkg/keys"
+	"github.com/SlateGitOrg/attestlog/pkg/note"
+	"github.com/SlateGitOrg/attestlog/pkg/policy"
+	"github.com/SlateGitOrg/attestlog/pkg/tlog"
+	"github.com/SlateGitOrg/attestlog/pkg/verify"
 )
 
 func pol() *policy.Policy {

@@ -23,10 +23,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/archit2501/attestlog/pkg/api"
-	"github.com/archit2501/attestlog/pkg/checkpoint"
-	"github.com/archit2501/attestlog/pkg/merkle"
-	"github.com/archit2501/attestlog/pkg/note"
+	"github.com/SlateGitOrg/attestlog/pkg/api"
+	"github.com/SlateGitOrg/attestlog/pkg/checkpoint"
+	"github.com/SlateGitOrg/attestlog/pkg/merkle"
+	"github.com/SlateGitOrg/attestlog/pkg/note"
 )
 
 // Evidence kinds.

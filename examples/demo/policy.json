@@ -1,7 +1,7 @@
 {
   "version": 1,
   "allowedBuilderIds": ["https://ci.example.test/builders/release@*"],
-  "allowedBuildTypes": ["https://github.com/archit2501/attestlog/buildtypes/generic/v1"],
+  "allowedBuildTypes": ["https://github.com/SlateGitOrg/attestlog/buildtypes/generic/v1"],
   "allowedSourceRepos": ["git+https://git.example.test/acme/hello-cli"],
   "allowedSourceRefs": ["refs/tags/v1.0.0"],
   "requireSourceDigest": true,

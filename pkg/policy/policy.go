@@ -16,8 +16,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/archit2501/attestlog/pkg/intoto"
-	"github.com/archit2501/attestlog/pkg/slsa"
+	"github.com/SlateGitOrg/attestlog/pkg/intoto"
+	"github.com/SlateGitOrg/attestlog/pkg/slsa"
 )
 
 // Policy is the on-disk JSON policy document.

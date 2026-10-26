@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/archit2501/attestlog/pkg/checkpoint"
-	"github.com/archit2501/attestlog/pkg/intoto"
-	"github.com/archit2501/attestlog/pkg/merkle"
-	"github.com/archit2501/attestlog/pkg/note"
+	"github.com/SlateGitOrg/attestlog/pkg/checkpoint"
+	"github.com/SlateGitOrg/attestlog/pkg/intoto"
+	"github.com/SlateGitOrg/attestlog/pkg/merkle"
+	"github.com/SlateGitOrg/attestlog/pkg/note"
 )
 
 // ErrNotFound is returned for unknown indices or leaf hashes.

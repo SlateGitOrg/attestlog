@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/archit2501/attestlog/pkg/intoto"
+	"github.com/SlateGitOrg/attestlog/pkg/intoto"
 )
 
 // PredicateType is the predicateType URI for SLSA Provenance v1.
@@ -19,7 +19,7 @@ const PredicateType = "https://slsa.dev/provenance/v1"
 // GenericBuildType is the buildType this tool emits. Its externalParameters
 // convention is documented in docs/ARCHITECTURE.md: a "source" object with
 // "uri", "digest" and optional "ref", plus free-form string parameters.
-const GenericBuildType = "https://github.com/archit2501/attestlog/buildtypes/generic/v1"
+const GenericBuildType = "https://github.com/SlateGitOrg/attestlog/buildtypes/generic/v1"
 
 // ErrInvalidProvenance wraps every predicate validation failure.
 var ErrInvalidProvenance = errors.New("slsa: invalid provenance")

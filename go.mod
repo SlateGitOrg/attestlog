@@ -1,3 +1,3 @@
-module github.com/archit2501/attestlog
+module github.com/SlateGitOrg/attestlog
 
 go 1.24
